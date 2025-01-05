@@ -2,12 +2,17 @@
     import { Bold, Italic, Link, Code, Bot, WandSparkles } from 'lucide-svelte';
 
     let textArea; // Reference for the textarea
-    let textAreaContent = ''; // Bind the textarea value
+    let textAreaContent = $state(''); // Bind the textarea value
+    const contentLenght = $derived(textAreaContent.length);
+    let selectionStart = $state(0);
+    let selectionEnd = $state(0);
+    let cursorPosition = $state(0);
+    let selectedText = $state('');
 
     // Insert tags into the textarea
     function insert(startTag, endTag) {
-        const selectionStart = textArea.selectionStart;
-        const selectionEnd = textArea.selectionEnd;
+        selectionStart = textArea.selectionStart;
+        selectionEnd = textArea.selectionEnd;
         const oldText = textAreaContent;
 
         const prefix = oldText.substring(0, selectionStart);
@@ -18,9 +23,12 @@
         // Update the cursor selection
         const newSelectionStart = selectionStart + startTag.length;
         const newSelectionEnd = selectionEnd + startTag.length;
+        console.log(newSelectionStart);
+        console.log(newSelectionEnd);
+        textArea.focus();
         textArea.setSelectionRange(newSelectionStart, newSelectionEnd);
 
-        textArea.focus();
+        //textArea.focus();
     }
 
     // Insert a hyperlink
@@ -32,88 +40,77 @@
             textArea.focus();
         }
     }
+
+    function updateCursorAndSelection(event) {
+        selectionStart = textArea.selectionStart;
+        selectionEnd = textArea.selectionEnd;
+        selectedText = textArea.value.substring(selectionStart, selectionEnd);
+
+        // If no text is selected, the cursor position is the same as selectionStart
+        cursorPosition = selectionStart;
+    }
 </script>
 
-<div
-    class="mb-4 w-full rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700"
->
-    <div class="flex items-center justify-between border-b px-3 py-2 dark:border-gray-600">
-        <div
-            class="flex flex-wrap items-center divide-gray-200 sm:divide-x sm:rtl:divide-x-reverse dark:divide-gray-600"
-        >
-            <div class="flex items-center space-x-1 sm:pe-4 rtl:space-x-reverse">
-                <button class="btn" onclick={() => insert('**', '**')} id="format-strong">
-                    <Bold />
-                </button>
-                <button class="btn" onclick={() => insert('*', '*')} id="format-em">
-                    <Italic />
-                </button>
-                <button class="btn" onclick={insertURL} id="format-link">
-                    <Link />
-                </button>
-                <button class="btn" onclick={() => insert('\n```\n', '\n```\n')} id="format-code">
-                    <Code />
-                </button>
-                <div class="dropdown dropdown-bottom">
-                    <div tabindex="0" role="button" class="btn m-0"><Bot /></div>
-                    <ul
-                        tabindex="0"
-                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                    >
-                        <li>
-                            <button
-                                class="btn"
-                                onclick={() => insert('\n```\n', '\n```\n')}
-                                id="format-code"
-                            >
-                                AA
-                            </button>
-                        </li>
-                        <li><a>Translate</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown dropdown-bottom">
-                    <div tabindex="0" role="button" class="btn m-0"><WandSparkles /></div>
-                    <ul
-                        tabindex="0"
-                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                    >
-                        <li><a>Generate text</a></li>
-                        <li><a>Rewrite</a></li>
-                    </ul>
-                </div>
+<div class="border-base-300 bg-base-200 mb-4 w-full rounded-lg border p-1">
+    <div class="flex justify-between pb-1">
+        <div class="join">
+            <button class="btn join-item" onclick={() => insert('**', '**')} id="format-strong">
+                <Bold />
+            </button>
+            <button class="btn join-item" onclick={() => insert('*', '*')} id="format-em">
+                <Italic />
+            </button>
+            <button class="btn join-item" onclick={insertURL} id="format-link">
+                <Link />
+            </button>
+            <button
+                class="btn join-item"
+                onclick={() => insert('\n```\n', '\n```\n')}
+                id="format-code"
+            >
+                <Code />
+            </button>
+            <div class="dropdown dropdown-bottom join-item">
+                <div tabindex="0" role="button" class="btn m-0"><Bot /></div>
+                <ul
+                    tabindex="0"
+                    class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                >
+                    <li>
+                        <button
+                            class="btn"
+                            onclick={() => insert('\n```\n', '\n```\n')}
+                            id="format-code"
+                        >
+                            AA
+                        </button>
+                    </li>
+                    <li><a>Translate</a></li>
+                </ul>
+            </div>
+            <div class="dropdown dropdown-bottom join-item">
+                <div tabindex="0" role="button" class="btn m-0"><WandSparkles /></div>
+                <ul
+                    tabindex="0"
+                    class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                >
+                    <li><a>Generate text</a></li>
+                    <li><a>Rewrite</a></li>
+                </ul>
             </div>
         </div>
+
         <div class="fieldset-label">{textAreaContent.length}</div>
-        <button
-            type="button"
-            data-tooltip-target="tooltip-fullscreen"
-            class="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 sm:ms-auto dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-white"
-        >
-            <svg
-                class="h-4 w-4"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 19 19"
+        <div class="fieldset-label">aabb</div>
+
+        <div>
+            <button
+                class="btn join-item"
+                onclick={() => insert('\n```\n', '\n```\n')}
+                id="format-code"
             >
-                <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13 1h5m0 0v5m0-5-5 5M1.979 6V1H7m0 16.042H1.979V12M18 12v5.042h-5M13 12l5 5M2 1l5 5m0 6-5 5"
-                />
-            </svg>
-            <span class="sr-only">Full screen</span>
-        </button>
-        <div
-            id="tooltip-fullscreen"
-            role="tooltip"
-            class="tooltip invisible absolute z-10 inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white opacity-0 shadow-sm transition-opacity duration-300 dark:bg-gray-700"
-        >
-            Show full screen
-            <div class="tooltip-arrow" data-popper-arrow></div>
+                <Code />
+            </button>
         </div>
     </div>
     <div class="rounded-b-lg bg-white px-4 py-2 dark:bg-gray-800">
@@ -122,11 +119,22 @@
             id="editor"
             bind:this={textArea}
             bind:value={textAreaContent}
+            oninput={updateCursorAndSelection}
+            onselect={updateCursorAndSelection}
+            onkeyup={updateCursorAndSelection}
+            onmouseup={updateCursorAndSelection}
             rows="8"
             class="textarea-xl block w-full border-0 bg-white px-0 text-sm text-gray-800 focus:ring-0 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
             placeholder="Write an article..."
             required
         ></textarea>
     </div>
+    <button class="btn btn-primary btn-ghost mt-1"> Publish post </button>
 </div>
-<button type="submit" class="btn"> Publish post </button>
+<div class="w-full">
+    <p>Content length: {contentLenght}</p>
+    <p>Selection Start: {selectionStart}</p>
+    <p>Selection End: {selectionEnd}</p>
+    <p>Selected Text: {selectedText}</p>
+    <p>Cursor position: {cursorPosition}</p>
+</div>
